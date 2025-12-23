@@ -1,25 +1,13 @@
 import turtle
+from tabnanny import check
+
+from pattern import checkNeighbours, checkAdjacentP
+from gridMath import toX, toY, toIndex, indexToPos
 
 SIZE = 64
 ROWS = 10
 COLS = 10
-def toIndex(x, y):
-    return (y - 1) * 10 + (x - 1)
-def toX(index):
-    return index%10+1
-def toY(index):
-    return index//10+1
-def index_to_position(index):
-    row = index // COLS
-    col = index % COLS
 
-    start_x = -COLS * SIZE / 2
-    start_y =  ROWS * SIZE / 2
-
-    x = start_x + col * SIZE + SIZE / 2
-    y = start_y - row * SIZE - SIZE / 2
-
-    return x, y
 
 plants = [" "] * 110
 plants[toIndex(3, 3)] = "W"
@@ -28,7 +16,7 @@ vplants = ["W", "P", "C", "A"]
 SIZE = 64
 ROWS = 10
 COLS = 10
-color_map = {
+colorMap = {
     "W": "yellow",      # wheat
     "P": "goldenrod",   # potato
     "C": "orange",      # carrot
@@ -40,7 +28,7 @@ t.speed(0)
 t.hideturtle()
 
 
-def get_int_input(prompt):
+def getIntInput(prompt):
     while True:
         try:
             value = input(prompt)
@@ -52,14 +40,13 @@ def get_int_input(prompt):
             print("Invalid input. Please enter an integer.")
 
 
-def get_str_input(prompt):
+def getStrInput(prompt):
     while True:
         value = input(prompt).strip()
         if value == "":
             print("Input cannot be empty. Please enter something.")
         else:
             return value
-
 
 #Calc and apply monetary gains
 def update():
@@ -73,16 +60,19 @@ def update():
         if plant == "W":
             revenue += 10
             #Check for potatoes
-            if plants[index+1] == "P" or plants[index-1] == "P" or plants[index+10] == "P" or plants[index-10] == "P":
+            if checkAdjacentP(plants, index):
                 revenue += 6
 
         #Carrot
         if plant == "C":
-            revenue += 6+1*rounds
+            revenue += 6+2*rounds//3
 
         #Potato
         if plant == "P":
             revenue += 0
+
+        if plant == "A":
+            revenue += 15-checkNeighbours(plants, index)*1.5
 
         #Update the index
         index += 1
@@ -106,7 +96,7 @@ def draw():
 
     t.clear()
 
-    x, y = index_to_position(0)
+    x, y = indexToPos(0, COLS, ROWS, SIZE)
 
     t.penup()
     t.goto(x, y)
@@ -129,10 +119,10 @@ def draw():
 
         if plants[_] != " ":
 
-            t.color(color_map.get(plants[_]))
+            t.color(colorMap.get(plants[_]))
 
             t.penup()
-            t.goto(index_to_position(_))
+            t.goto(indexToPos(_, COLS, ROWS, SIZE))
             t.setheading(0)
             t.pendown()
 
@@ -163,7 +153,7 @@ def addPlant():
         while ccheck == False:
             # Get valid X coordinate
             while xcheck == False:
-                newplantX = get_int_input("New Plant X, e.g. 3:")
+                newplantX = getIntInput("New Plant X, e.g. 3:")
 
                 # Check if input is in the allowed range
                 if newplantX < 11 and newplantX > 0:
@@ -173,7 +163,7 @@ def addPlant():
 
             # Get valid Y coordinate
             while ycheck == False:
-                newplantY = get_int_input("New Plant Y, e.g. 3:")
+                newplantY = getIntInput("New Plant Y, e.g. 3:")
 
                 # Check if input is in the allowed range
                 if newplantY < 11 and newplantY > 0:
@@ -190,7 +180,7 @@ def addPlant():
 
         # Get valid plant type
         while tcheck == False:
-            newplantType = get_str_input("New Plant type, e.g. W")
+            newplantType = getStrInput("New Plant type, e.g. W")
 
             # Check if plant type is valid
             if newplantType.upper() in vplants:
@@ -203,6 +193,7 @@ def addPlant():
         print("W gives 10/r and an extra 6 if there is atleast 1 adjacent potato")
         print("C gives 7/r + 1 per completed round")
         print("P gives 0/r")
+        print("A gives more money the further it is from other plants")
         newplantType = " "  # Reset type if rules were requested
 
     # Assign new plant to the list at the correct index
@@ -210,7 +201,7 @@ def addPlant():
 
 
 # Mainloop
-while counter < 15:
+while rounds < 16:
 
     update()
     turtle.tracer(0)
