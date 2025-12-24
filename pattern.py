@@ -1,5 +1,6 @@
 from gridMath import toX, toY
 
+
 def checkNeighbours(plants, index):
     x, y = toX(index), toY(index)
 
@@ -24,7 +25,7 @@ def checkNeighbours(plants, index):
           (y < 9 and plants[index + 20] != " ")):
         return 3
 
-    # L-shape (3 away in L)
+    # L-shape
     elif ((x > 1 and y > 2 and plants[index - 21] != " ") or
           (x < 10 and y > 2 and plants[index - 19] != " ") or
           (x > 1 and y < 9 and plants[index + 19] != " ") or
@@ -45,6 +46,7 @@ def checkNeighbours(plants, index):
     else:
         return 0
 
+
 def checkAdjacentP(plants, index):
     x, y = toX(index), toY(index)
 
@@ -55,3 +57,18 @@ def checkAdjacentP(plants, index):
         (y < 10 and plants[index + 10] == "P")):
         return True
     return False
+
+
+def checkUniqueAdjacent(plants, index):
+    x, y = toX(index), toY(index)
+
+    return len({
+        plants[i]
+        for i, ok in [
+            (index - 1,  x > 1),
+            (index + 1,  x < 10),
+            (index - 10, y > 1),
+            (index + 10, y < 10),
+        ]
+        if ok and plants[i] != " "
+    })
