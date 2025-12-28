@@ -72,3 +72,42 @@ def checkUniqueAdjacent(plants, index):
         ]
         if ok and plants[i] != " "
     })
+
+
+def checkClusterSize(grid, start_index):
+    target = grid[start_index]
+    if target is None:
+        return 0
+
+    visited = set()
+    stack = [start_index]
+    size = 0
+
+    while stack:
+        i = stack.pop()
+
+        if i in visited:
+            continue
+        if grid[i] != target:
+            continue
+
+        visited.add(i)
+        size += 1
+
+        for n in neighbors(i):
+            stack.append(n)
+
+    return size
+
+def neighbors(i):
+    x = i % 10
+    y = i // 10
+
+    result = []
+
+    if x > 0:     result.append(i - 1)   # left
+    if x < 9:     result.append(i + 1)   # right
+    if y > 0:     result.append(i - 10)  # up
+    if y < 9:     result.append(i + 10)  # down
+
+    return result
