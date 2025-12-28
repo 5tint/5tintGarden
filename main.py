@@ -1,28 +1,23 @@
 import turtle
 from tabnanny import check
 
-from pattern import checkNeighbours, checkAdjacentP, checkUniqueAdjacent
+from pattern import checkNeighbours, checkAdjacentP, checkUniqueAdjacent, checkClusterSize, neighbors
 from gridMath import toX, toY, toIndex, indexToPos
+from textures import wheat, potato, carrot, apple, bamboo, vine
+
 
 SIZE = 64
 ROWS = 10
-COLS = 10
-
-
-plants = [" "] * 110
+COLS = 1
+plants = [" "] * 100
 plants[toIndex(3, 3)] = "W"
 counter, money, rounds = 0, 0, 1
-vplants = ["W", "P", "C", "A", "B"]
+vplants = ["W", "P", "C", "A", "B", "V"]
 SIZE = 64
 ROWS = 10
 COLS = 10
-colorMap = {
-    "W": "yellow",      # wheat
-    "P": "goldenrod",   # potato
-    "C": "orange",      # carrot
-    "A": "red",         # apple
-    "B": "lime"         # bamboo
-}
+
+
 
 t = turtle.Turtle()
 t.speed(0)
@@ -81,6 +76,10 @@ def update():
 
         if plant == "B":
             revenue += 9+checkUniqueAdjacent(plants, index)*2
+
+        if plant == "V":
+            revenue += checkClusterSize(plants, index)*0.6 + 4
+
         #Update the index
         index += 1
 
@@ -100,9 +99,86 @@ def gridOD(factor):
         t.forward(64)
         t.left(90*factor)
 
+def drawPixel(x, y, size, color):
+
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.color(color)
+    t.begin_fill()
+    for _ in range(4):
+        t.forward(size)
+        t.right(90)
+    t.end_fill()
+
+
+def drawTexturedTile(tileIndex, texture):
+    PIXELS = 16
+    pixel_size = SIZE / PIXELS
+
+    # center of the tile
+    cx, cy = indexToPos(tileIndex, COLS, ROWS, SIZE)
+
+    # top-left corner of the tile
+    start_x = cx
+    start_y = cy
+
+    if rounds > 1:
+        start_x += 4
+
+    for i, rgb in enumerate(texture):
+        row = i // PIXELS
+        col = i % PIXELS
+
+        x = start_x + col * pixel_size
+        y = start_y - row * pixel_size
+
+        color = tuple(int(c) / 255 for c in rgb.split(", "))
+        drawPixel(x, y, pixel_size, color)
+
+
 def draw():
 
     t.clear()
+
+    for _ in range(len(plants)):
+
+        t.penup()
+
+        match plants[_]:
+            case "W":
+                drawTexturedTile(_, wheat)
+            case "P":
+                drawTexturedTile(_, potato)
+            case "C":
+                drawTexturedTile(_, carrot)
+            case "A":
+                drawTexturedTile(_, apple)
+            case "B":
+                drawTexturedTile(_, bamboo)
+            case "V":
+                drawTexturedTile(_, vine)
+
+
+        t.color("black")
+
+        if plants[_] == "W":
+
+            t.penup()
+
+            drawTexturedTile(_, wheat)
+
+            t.color("black")
+
+        if plants[_] == "A":
+
+            t.color(colorMap.get(plants[_]))
+
+            t.penup()
+
+            drawTexturedTile(_, apple)
+
+            t.color("black")
 
     x, y = indexToPos(0, COLS, ROWS, SIZE)
 
@@ -122,25 +198,6 @@ def draw():
     t.left(90)
 
     gridOD(-1)
-
-    for _ in range(len(plants)):
-
-        if plants[_] != " ":
-
-            t.color(colorMap.get(plants[_]))
-
-            t.penup()
-            t.goto(indexToPos(_, COLS, ROWS, SIZE))
-            t.setheading(0)
-            t.pendown()
-
-            t.begin_fill()
-            for _ in range(4):
-                t.forward(64)
-                t.right(90)
-            t.end_fill()
-
-            t.color("black")
 
 
 # Whole process to add a new plant and display the UI for it
