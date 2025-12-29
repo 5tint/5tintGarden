@@ -4,50 +4,18 @@ from tabnanny import check
 from pattern import checkNeighbours, checkAdjacentP, checkUniqueAdjacent, checkClusterSize, neighbors
 from gridMath import toX, toY, toIndex, indexToPos
 from textures import wheat, potato, carrot, apple, bamboo, vine
+from data import counter, money, rounds, vplants, ROWS, COLS, SIZE, prompt, getIntInput, getStrInput
 
 
-SIZE = 64
-ROWS = 10
-COLS = 1
 plants = [" "] * 100
 plants[toIndex(3, 3)] = "W"
-counter, money, rounds = 0, 0, 1
-vplants = ["W", "P", "C", "A", "B", "V"]
-SIZE = 64
-ROWS = 10
-COLS = 10
-
 
 
 t = turtle.Turtle()
 t.speed(0)
 t.hideturtle()
 
-
-def getIntInput(prompt):
-
-    while True:
-        try:
-            value = input(prompt)
-            if value.strip() == "":
-                print("Input cannot be empty. Please enter a number.")
-                continue
-            return int(value)
-        except ValueError:
-            print("Invalid input. Please enter an integer.")
-
-
-def getStrInput(prompt):
-
-    while True:
-        value = input(prompt).strip()
-        if value == "":
-            print("Input cannot be empty. Please enter something.")
-        else:
-            return value
-
-#Calc and apply monetary gains
-def update():
+def getRevenue():
 
     global money
     revenue = 0
@@ -68,7 +36,7 @@ def update():
 
         #Potato
         if plant == "P":
-            revenue += 0
+            revenue += 1
 
         #Apple
         if plant == "A":
@@ -78,14 +46,13 @@ def update():
             revenue += 9+checkUniqueAdjacent(plants, index)*2
 
         if plant == "V":
-            revenue += checkClusterSize(plants, index)*0.6 + 4
+            revenue += checkClusterSize(plants, index)*0.7 + 4
 
         #Update the index
         index += 1
 
     #Add total revenue
-    money += revenue
-
+    return revenue
 
 def gridOD(factor):
 
@@ -161,24 +128,6 @@ def draw():
 
 
         t.color("black")
-
-        if plants[_] == "W":
-
-            t.penup()
-
-            drawTexturedTile(_, wheat)
-
-            t.color("black")
-
-        if plants[_] == "A":
-
-            t.color(colorMap.get(plants[_]))
-
-            t.penup()
-
-            drawTexturedTile(_, apple)
-
-            t.color("black")
 
     x, y = indexToPos(0, COLS, ROWS, SIZE)
 
@@ -268,7 +217,7 @@ def addPlant():
 # Mainloop
 while rounds < 16:
 
-    update()
+    money += getRevenue()
     turtle.tracer(0)
     draw()
     turtle.update()
@@ -280,3 +229,6 @@ while rounds < 16:
         turtle.update()
         addPlant()
     rounds += 1
+
+money += getRevenue()
+print(money)
