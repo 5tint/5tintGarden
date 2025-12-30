@@ -3,10 +3,11 @@ vplants = ["W", "P", "C", "A", "B", "V"]
 SIZE = 64
 ROWS = 10
 COLS = 10
-prompt = """CLASSIC for classic mode (15 Rounds and double-planting on R7 & R14
-            SHORT for short mode (10 Rounds, double-planting)
+gmprompt = """CLASSIC for classic mode (15 Rounds and double-planting on R7 & R14
+            SHORT for short mode (10 Rounds, double-planting when rounds%7 == 0)
             INSANE for insane mode (15 Rounds, always double planting)
             MARATHON for marathon mode (30 Rounds, planting every second round)"""
+gm = "CLASSIC"
 
 def getIntInput(prompt):
 
