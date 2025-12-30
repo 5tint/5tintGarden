@@ -4,7 +4,7 @@ from tabnanny import check
 from pattern import checkNeighbours, checkAdjacentP, checkUniqueAdjacent, checkClusterSize, neighbors
 from gridMath import toX, toY, toIndex, indexToPos
 from textures import wheat, potato, carrot, apple, bamboo, vine
-from data import counter, money, rounds, vplants, ROWS, COLS, SIZE, prompt, getIntInput, getStrInput
+from data import counter, money, rounds, vplants, ROWS, COLS, SIZE, gmprompt, getIntInput, getStrInput, gm
 
 
 plants = [" "] * 100
@@ -214,21 +214,133 @@ def addPlant():
     plants[toIndex(newplantX, newplantY)] = newplantType.upper()
 
 
-# Mainloop
-while rounds < 16:
+gmcheck = False
+while gmcheck == False:
+    gm = getStrInput(gmprompt)
+    gm = gm.upper()
+    if gm == "CLASSIC" or gm == "SHORT" or gm == "INSANE" or gm == "MARATHON":
+        gmcheck = True
 
-    money += getRevenue()
-    turtle.tracer(0)
-    draw()
-    turtle.update()
-    addPlant()
-    if rounds % 7 == 0:
-        print("Second Turn, round%7 == 0")
+if gm == "CLASSIC":
+    while rounds < 16:
+
+        money += getRevenue()
         turtle.tracer(0)
         draw()
         turtle.update()
         addPlant()
-    rounds += 1
+        if rounds % 7 == 0:
+            print("Second Turn, round%7 == 0")
+            turtle.tracer(0)
+            draw()
+            turtle.update()
+            addPlant()
+        rounds += 1
+
+if gm == "SHORT":
+    while rounds < 11:
+
+        money += getRevenue()
+        turtle.tracer(0)
+        draw()
+        turtle.update()
+        addPlant()
+        if rounds % 7 == 0:
+            print("Second Turn, round%7 == 0")
+            turtle.tracer(0)
+            draw()
+            turtle.update()
+            addPlant()
+        rounds += 1
+
+if gm == "INSANE":
+    while rounds < 16:
+
+        money += getRevenue()
+        turtle.tracer(0)
+        draw()
+        turtle.update()
+        addPlant()
+        print("Second Turn, its INSANE mode!!!!!!!!!")
+        turtle.tracer(0)
+        draw()
+        turtle.update()
+        addPlant()
+        rounds += 1
+
+if gm == "MARATHON":
+    while rounds < 31:
+
+        money += getRevenue()
+        if rounds % 2 == 1:
+            print("Planting time!")
+            turtle.tracer(0)
+            draw()
+            turtle.update()
+            addPlant()
+        else:
+            print("Not planting time, wait for the next round :)b")
+        rounds += 1
+
+with open("scores.txt", "r+") as file:
+    lines = file.readlines()
+
+    # Ensure the file has enough lines (for each game mode)
+    while len(lines) < 4:
+        lines.append("\n")
+
+    # Update the correct line based on the game mode
+    if gm == "CLASSIC":
+        lines[0] = f"CLASSIC: {money}\n"
+    elif gm == "SHORT":
+        lines[1] = f"SHORT: {money}\n"
+    elif gm == "INSANE":
+        lines[2] = f"INSANE: {money}\n"
+    elif gm == "MARATHON":
+        lines[3] = f"MARATHON: {money}\n"
+
 
 money += getRevenue()
+
+
+with open("scores.txt", "r+") as file:
+    lines = file.readlines()
+
+    # Ensure the file has enough lines (for each game mode)
+    while len(lines) < 4:
+        lines.append("\n")
+
+    # Print current score
+    print(f"Your score: {money}")
+
+    # Check and update score based on the game mode
+    if gm == "CLASSIC":
+        current_score = int(lines[0].split(":")[1].strip()) if lines[0].strip() else 0
+        print(f"Your highscore in CLASSIC: {current_score}$")
+        if money > current_score:
+            lines[0] = f"CLASSIC: {money}\n"
+            print(f"Your new highscore in CLASSIC is {money}$")
+    elif gm == "SHORT":
+        current_score = int(lines[1].split(":")[1].strip()) if lines[1].strip() else 0
+        print(f"Your highscore in SHORT: {current_score}$")
+        if money > current_score:
+            lines[1] = f"SHORT: {money}\n"
+            print(f"Your new highscore in SHORT is {money}$")
+    elif gm == "INSANE":
+        current_score = int(lines[2].split(":")[1].strip()) if lines[2].strip() else 0
+        print(f"Your highscore in INSANE: {current_score}$")
+        if money > current_score:
+            lines[2] = f"INSANE: {money}\n"
+            print(f"Your new highscore in INSANE is {money}$")
+    elif gm == "MARATHON":
+        current_score = int(lines[3].split(":")[1].strip()) if lines[3].strip() else 0
+        print(f"Your highscore in MARATHON: {current_score}$")
+        if money > current_score:
+            lines[3] = f"MARATHON: {money}$\n"
+            print(f"Your new highscore in MARATHON is {money}$")
+
+    # Write the updated lines to the file if the score was updated
+    file.seek(0)
+    file.writelines(lines)
+
 print(money)
