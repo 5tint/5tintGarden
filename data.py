@@ -6,7 +6,8 @@ COLS = 10
 gmprompt = """CLASSIC for classic mode (15 Rounds and double-planting on R7 & R14
             SHORT for short mode (10 Rounds, double-planting when rounds%7 == 0)
             INSANE for insane mode (15 Rounds, always double planting)
-            MARATHON for marathon mode (30 Rounds, planting every second round)"""
+            MARATHON for marathon mode (30 Rounds, planting every second round)
+            WILDERNESS for wilderness mode (15 rounds, random plant planted every round in addition)"""
 gm = "CLASSIC"
 
 def getIntInput(prompt):
