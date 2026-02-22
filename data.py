@@ -1,5 +1,6 @@
 counter, money, rounds = 0, 0, 1
 vplants = ["W", "P", "C", "A", "B", "V"]
+vmutations = ["BA", "TB", "GS", "ST"]
 SIZE = 64
 ROWS = 10
 COLS = 10
@@ -11,7 +12,6 @@ gmprompt = """CLASSIC for classic mode (15 Rounds and double-planting on R7 & R1
 gm = "CLASSIC"
 
 def getIntInput(prompt):
-
     while True:
         try:
             value = input(prompt)
@@ -31,3 +31,7 @@ def getStrInput(prompt):
             print("Input cannot be empty. Please enter something.")
         else:
             return value
+
+def getMatchingElements(list1, list2):
+    set2 = set(list2)
+    return sum(1 for x in list1 if x in set2)
