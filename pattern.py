@@ -1,3 +1,5 @@
+from itertools import count
+
 from gridMath import toX, toY
 
 
@@ -58,20 +60,56 @@ def checkAdjacentP(plants, index):
         return True
     return False
 
+def checkAdjacent(plants, index, type):
+    x, y = toX(index), toY(index)
+    counter = 0
+
+    if type == " ":
+        if (x > 1 and plants[index - 1] != " "):
+            counter += 1
+        if (x < 10 and plants[index + 1] != " "):
+            counter += 1
+        if (y > 1 and plants[index - 10] != " "):
+            counter += 1
+        if (y < 10 and plants[index + 10] != " "):
+            counter += 1
+        return counter
+
+    else:
+        if (x > 1 and plants[index - 1] == type):
+            counter += 1
+        if (x < 10 and plants[index + 1] == type):
+            counter += 1
+        if (y > 1 and plants[index - 10] == type):
+            counter += 1
+        if (y < 10 and plants[index + 10] == type):
+            counter += 1
+        return counter
+
 
 def checkUniqueAdjacent(plants, index):
     x, y = toX(index), toY(index)
 
-    return len({
-        plants[i]
-        for i, ok in [
-            (index - 1,  x > 1),
-            (index + 1,  x < 10),
-            (index - 10, y > 1),
-            (index + 10, y < 10),
-        ]
-        if ok and plants[i] != " "
-    })
+    unique = set()
+
+    # left
+    if x > 1 and plants[index - 1] != " ":
+        unique.add(plants[index - 1])
+
+    # right
+    if x < 10 and plants[index + 1] != " ":
+        unique.add(plants[index + 1])
+
+    # up
+    if y > 1 and plants[index - 10] != " ":
+        unique.add(plants[index - 10])
+
+    # down
+    if y < 10 and plants[index + 10] != " ":
+        unique.add(plants[index + 10])
+
+    return len(unique)
+
 
 
 def checkClusterSize(grid, start_index):
