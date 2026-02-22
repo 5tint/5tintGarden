@@ -1,20 +1,22 @@
+import random
 import turtle
 from tabnanny import check
+import ast
 
-from pattern import checkNeighbours, checkAdjacentP, checkUniqueAdjacent, checkClusterSize, neighbors
+from pattern import checkNeighbours, checkAdjacentP, checkAdjacent, checkUniqueAdjacent, checkClusterSize, neighbors
 from gridMath import toX, toY, toIndex, indexToPos
-from textures import wheat, potato, carrot, apple, bamboo, vine
-from data import counter, money, rounds, vplants, ROWS, COLS, SIZE, gmprompt, getIntInput, getStrInput, gm
+from textures import wheat, potato, carrot, apple, bamboo, vine, blackapple, stoplight, tabasco, godseed
+from data import counter, money, rounds, vplants, vmutations, ROWS, COLS, SIZE, gmprompt, getIntInput, getStrInput, gm, getMatchingElements
 
 
 plants = [" "] * 100
-plants[toIndex(3, 3)] = "W"
+
 
 
 t = turtle.Turtle()
 t.speed(0)
 t.hideturtle()
-
+stoplightcache = -1
 def getRevenue():
     revenue = 0
 
@@ -49,6 +51,9 @@ def getRevenue():
 
             revenue += max(0, value)
 
+            if checkAdjacent(plants, index, "A") == 4:
+                plants[index] = "BA"
+
         elif plant == "B":
             base = 9 + checkUniqueAdjacent(plants, index) * 2
             penalty = max(0, count - 5) * 0.4
@@ -66,8 +71,25 @@ def getRevenue():
 
             revenue += max(0, value)
 
+        if plants[index] == " ":
+            if checkAdjacent(plants, index, "V") == 1:
+                if checkAdjacent(plants, index, "B") == 3:
+                    if plants.count(" ") % 5 == 0:
+                        plants[index] = "TB"
+
+            if checkUniqueAdjacent(plants, index) == 4 and rounds == 25:
+                plants[index] = "GS"
+
+            if toX(index) > 2 and toX(index) < 9 and toY(index) > 2 and toY(index) < 9:
+                if (plants[toIndex(toX(index)+2, toY(index))] == "W" and
+                    plants[toIndex(toX(index)-2, toY(index))] == "W" and
+                    plants[toIndex(toX(index), toY(index)-2)] == "W" and
+                    plants[toIndex(toX(index), toY(index)+2)] == "W"):
+                    plants[index] = "ST"
+
 
     return revenue
+
 
 def gridOD(factor):
 
@@ -140,6 +162,14 @@ def draw():
                 drawTexturedTile(_, bamboo)
             case "V":
                 drawTexturedTile(_, vine)
+            case "BA":
+                drawTexturedTile(_, blackapple)
+            case "ST":
+                drawTexturedTile(_, stoplight)
+            case "TB":
+                drawTexturedTile(_, tabasco)
+            case "GS":
+                drawTexturedTile(_, godseed)
 
 
         t.color("black")
@@ -214,18 +244,22 @@ def addPlant():
             # Check if plant type is valid
             if newplantType.upper() in vplants:
                 tcheck = True
+
+            elif newplantType.lower() == "scores":
+                print("Highscores:")
+                with open("scores.txt", "r") as file:
+                    print(file.read(), end="")
+
             else:
                 print("You have to choose one of these plants: ", vplants)
 
-    # Check if user requested rules instead of a plant type
-    if newplantType == "Rules":
+
         print("W gives 10/r and an extra 6 if there is atleast 1 adjacent potato")
         print("C gives 7/r + 1 per completed round")
         print("P gives 0/r")
         print("A gives more money the further it is from other plants, up to 15 and at least 7.5")
         print("B gives 9 + 2 per unique neighbour")
         print("V gives 4 + 0.8 per cluster size")
-        newplantType = " "  # Reset type if rules were requested
 
     # Assign new plant to the list at the correct index
     plants[toIndex(newplantX, newplantY)] = newplantType.upper()
@@ -235,9 +269,23 @@ gmcheck = False
 while gmcheck == False:
     gm = getStrInput(gmprompt)
     gm = gm.upper()
-    if gm == "CLASSIC" or gm == "SHORT" or gm == "INSANE" or gm == "MARATHON":
+    if gm == "CLASSIC" or gm == "SHORT" or gm == "INSANE" or gm == "MARATHON" or gm == "WILDERNESS":
         gmcheck = True
+print("W gives 10/r and an extra 6 if there is atleast 1 adjacent potato")
+print("C gives 7/r + 1 per completed round")
+print("P gives 0/r")
+print("A gives more money the further it is from other plants, up to 15 and at least 7.5")
+print("B gives 9 + 2 per unique neighbour")
+print("V gives 4 + 0.8 per cluster size")
 
+with open("scores.txt", "r+") as file:
+    lines = file.readlines()
+
+line_6 = lines[5].strip()  # line index 5 = line 6
+obtainedMutations = ast.literal_eval(line_6)
+print(getMatchingElements(obtainedMutations, vmutations))
+
+print(len(obtainedMutations), "/4 Mutations unlocked")
 if gm == "CLASSIC":
     while rounds < 16:
 
@@ -299,11 +347,33 @@ if gm == "MARATHON":
             print("Not planting time, wait for the next round :)b")
         rounds += 1
 
+if gm == "WILDERNESS":
+    while rounds < 15:
+
+        rcheck = False
+        while rcheck == False:
+            x = random.randint(1, 10)
+            y = random.randint(1, 10)
+            if plants[toIndex(x, y)] == " ":
+                rcheck = True
+        plants[toIndex(x, y)] = vplants[random.randint(0, 5)]
+        turtle.tracer(0)
+        draw()
+        turtle.update()
+        money += getRevenue()
+
+
+        addPlant()
+        turtle.tracer(0)
+        draw()
+        turtle.update()
+        rounds += 1
+
 with open("scores.txt", "r+") as file:
     lines = file.readlines()
 
     # Ensure the file has enough lines (for each game mode)
-    while len(lines) < 4:
+    while len(lines) < 5:
         lines.append("\n")
 
     # Update the correct line based on the game mode
@@ -315,6 +385,8 @@ with open("scores.txt", "r+") as file:
         lines[2] = f"INSANE: {money}\n"
     elif gm == "MARATHON":
         lines[3] = f"MARATHON: {money}\n"
+    elif gm == "WILDERNESS":
+        lines[4] = f"WILDERNESS: {money}\n"
 
 
 money += getRevenue()
@@ -355,9 +427,36 @@ with open("scores.txt", "r+") as file:
         if money > current_score:
             lines[3] = f"MARATHON: {money}$\n"
             print(f"Your new highscore in MARATHON is {money}$")
+    elif gm == "WILDERNESS":
+        current_score = int(lines[4].split(":")[1].strip()) if lines[3].strip() else 0
+        print(f"Your highscore in WILDERNESS: {current_score}$")
+        if money > current_score:
+            lines[4] = f"WILDERNESS: {money}$\n"
+            print(f"Your new highscore in WILDERNESS is {money}$")
 
     # Write the updated lines to the file if the score was updated
     file.seek(0)
     file.writelines(lines)
+
+with open("scores.txt", "r") as f:
+    lines = f.readlines()
+
+# 6th line → index 5
+list_line = lines[5].strip()
+
+# Turn the text into a real list
+listtemp = ast.literal_eval(list_line)
+
+# Add your string
+for element in plants:
+    if element == "BA" or element == "ST" or element == "TB" or element == "GS":
+        if element not in obtainedMutations:
+            obtainedMutations.append(element)
+
+# Write it back as plain text
+lines[5] = str(obtainedMutations) + "\n"
+
+with open("scores.txt", "w") as f:
+    f.writelines(lines)
 
 print(money)
